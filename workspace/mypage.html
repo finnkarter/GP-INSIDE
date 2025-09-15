@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>마이페이지 - 영감 인사이드</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/mypage.css">
+</head>
+<body>
+    <div class="wrapper">
+        <!-- 헤더 -->
+        <header class="header">
+            <div class="header-container">
+                <div class="logo">
+                    <a href="index.html">
+                        <h1>영감 인사이드</h1>
+                        <span class="subtitle">Inspiration Inside</span>
+                    </a>
+                </div>
+                <div class="search-bar">
+                    <input type="text" id="searchInput" placeholder="갤러리, 게시글 검색">
+                    <button onclick="performSearch()">검색</button>
+                </div>
+                <div class="user-menu">
+                    <button onclick="toggleTheme()" class="theme-toggle" title="다크 테마 전환">
+                        <span id="themeIcon">🌙</span>
+                    </button>
+                    <div id="userSection" class="user-section">
+                        <span id="userNickname"></span>님
+                        <a href="mypage.html" class="active">마이페이지</a>
+                        <a href="admin.html" id="adminLink" style="display: none;">관리자</a>
+                        <button onclick="logout()">로그아웃</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- 메인 컨텐츠 -->
+        <main class="main">
+            <div class="mypage-container">
+                <!-- 사이드 메뉴 -->
+                <aside class="mypage-sidebar">
+                    <div class="user-profile">
+                        <div class="profile-image">
+                            <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzIiIGZpbGw9IiNEREREREQiLz4KPHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgZmlsbD0ibm9uZSI+CjxjaXJjbGUgY3g9IjMyIiBjeT0iMjQiIHI9IjEyIiBmaWxsPSIjOTk5Ii8+CjxwYXRoIGQ9Ik0xNiA1NkMxNiA0OCAyMyA0MCAzMiA0MEM0MSA0MCA0OCA0OCA0OCA1NiIgZmlsbD0iIzk5OSIvPgo8L3N2Zz4KPC9zdmc+" alt="프로필 이미지">
+                        </div>
+                        <div class="profile-info">
+                            <h3 id="profileNickname">닉네임</h3>
+                            <p id="profileJoinDate">가입일: 2025.09.15</p>
+                        </div>
+                    </div>
+                    <nav class="mypage-nav">
+                        <ul>
+                            <li><a href="#profile" class="nav-link active" onclick="showSection('profile')">프로필 설정</a></li>
+                            <li><a href="#my-posts" class="nav-link" onclick="showSection('my-posts')">내가 쓴 글</a></li>
+                            <li><a href="#my-comments" class="nav-link" onclick="showSection('my-comments')">내가 쓴 댓글</a></li>
+                            <li><a href="#bookmarks" class="nav-link" onclick="showSection('bookmarks')">북마크</a></li>
+                            <li><a href="#settings" class="nav-link" onclick="showSection('settings')">계정 설정</a></li>
+                        </ul>
+                    </nav>
+                </aside>
+
+                <!-- 메인 컨텐츠 -->
+                <div class="mypage-content">
+                    <!-- 프로필 설정 -->
+                    <section id="profile" class="content-section active">
+                        <h2>프로필 설정</h2>
+                        <form class="profile-form">
+                            <div class="form-group">
+                                <label for="nickname">닉네임</label>
+                                <input type="text" id="nickname" name="nickname">
+                                <button type="button" onclick="checkNickname()">중복확인</button>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">이메일</label>
+                                <input type="email" id="email" name="email">
+                            </div>
+                            <div class="form-group">
+                                <label for="bio">자기소개</label>
+                                <textarea id="bio" name="bio" rows="4" placeholder="자기소개를 입력하세요"></textarea>
+                            </div>
+                            <button type="submit" class="submit-btn">저장</button>
+                        </form>
+                    </section>
+
+                    <!-- 내가 쓴 글 -->
+                    <section id="my-posts" class="content-section">
+                        <h2>내가 쓴 글</h2>
+                        <div class="stats-bar">
+                            <span>총 <strong id="myPostCount">0</strong>개의 글</span>
+                            <div class="filter-options">
+                                <select id="postFilter" onchange="filterMyPosts()">
+                                    <option value="all">전체</option>
+                                    <option value="week">1주일</option>
+                                    <option value="month">1개월</option>
+                                    <option value="year">1년</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="myPostsList" class="posts-list">
+                            <!-- 내 게시글 목록 -->
+                        </div>
+                    </section>
+
+                    <!-- 내가 쓴 댓글 -->
+                    <section id="my-comments" class="content-section">
+                        <h2>내가 쓴 댓글</h2>
+                        <div class="stats-bar">
+                            <span>총 <strong id="myCommentCount">0</strong>개의 댓글</span>
+                            <div class="filter-options">
+                                <select id="commentFilter" onchange="filterMyComments()">
+                                    <option value="all">전체</option>
+                                    <option value="week">1주일</option>
+                                    <option value="month">1개월</option>
+                                    <option value="year">1년</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div id="myCommentsList" class="comments-list">
+                            <!-- 내 댓글 목록 -->
+                        </div>
+                    </section>
+
+                    <!-- 북마크 -->
+                    <section id="bookmarks" class="content-section">
+                        <h2>북마크</h2>
+                        <div class="stats-bar">
+                            <span>총 <strong id="bookmarkCount">0</strong>개의 북마크</span>
+                        </div>
+                        <div id="bookmarksList" class="posts-list">
+                            <!-- 북마크 목록 -->
+                        </div>
+                    </section>
+
+                    <!-- 계정 설정 -->
+                    <section id="settings" class="content-section">
+                        <h2>계정 설정</h2>
+                        
+                        <!-- 비밀번호 변경 -->
+                        <div class="settings-group">
+                            <h3>비밀번호 변경</h3>
+                            <form class="password-form">
+                                <div class="form-group">
+                                    <label for="currentPassword">현재 비밀번호</label>
+                                    <input type="password" id="currentPassword" name="currentPassword">
+                                </div>
+                                <div class="form-group">
+                                    <label for="newPassword">새 비밀번호</label>
+                                    <input type="password" id="newPassword" name="newPassword">
+                                </div>
+                                <div class="form-group">
+                                    <label for="confirmPassword">새 비밀번호 확인</label>
+                                    <input type="password" id="confirmPassword" name="confirmPassword">
+                                </div>
+                                <button type="submit" class="submit-btn">비밀번호 변경</button>
+                            </form>
+                        </div>
+
+                        <!-- 알림 설정 -->
+                        <div class="settings-group">
+                            <h3>알림 설정</h3>
+                            <div class="checkbox-group">
+                                <label>
+                                    <input type="checkbox" id="commentNotification" checked>
+                                    댓글 알림 받기
+                                </label>
+                                <label>
+                                    <input type="checkbox" id="likeNotification" checked>
+                                    추천 알림 받기
+                                </label>
+                                <label>
+                                    <input type="checkbox" id="systemNotification" checked>
+                                    시스템 알림 받기
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- 계정 삭제 -->
+                        <div class="settings-group danger-zone">
+                            <h3>계정 삭제</h3>
+                            <p>계정을 삭제하면 모든 데이터가 영구적으로 삭제됩니다.</p>
+                            <button onclick="deleteAccount()" class="danger-btn">계정 삭제</button>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+
+        <!-- 푸터 -->
+        <footer class="footer">
+            <div class="footer-container">
+                <p>&copy; 2025 영감 인사이드. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="js/common.js"></script>
+    <script src="js/mypage.js"></script>
+</body>
+</html>

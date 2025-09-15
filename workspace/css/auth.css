@@ -1,0 +1,308 @@
+/* 인증 페이지 스타일 */
+
+.auth-container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 0 20px;
+}
+
+.auth-form {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    padding: 30px;
+    box-shadow: 0 2px 10px var(--shadow-light);
+}
+
+.auth-form h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: var(--accent-color);
+    font-size: 24px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: var(--text-primary);
+    font-size: 13px;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 14px;
+    background-color: var(--bg-secondary);
+    color: var(--text-primary);
+    transition: border-color 0.3s;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.1);
+}
+
+/* 중복확인 버튼이 있는 입력 필드 */
+.form-group:has(button) {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+}
+
+.form-group:has(button) input {
+    flex: 1;
+}
+
+.form-group button {
+    padding: 12px 20px;
+    background-color: var(--text-muted);
+    color: var(--bg-secondary);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    white-space: nowrap;
+    transition: background-color 0.3s;
+}
+
+.form-group button:hover {
+    background-color: var(--text-secondary);
+}
+
+/* 중복확인 및 검증 메시지 */
+.check-message {
+    margin-top: 5px;
+    font-size: 12px;
+    font-weight: normal;
+}
+
+.check-message.success {
+    color: var(--success-color);
+}
+
+.check-message.error {
+    color: var(--danger-color);
+}
+
+.check-message.warning {
+    color: var(--warning-color);
+}
+
+/* 체크박스 그룹 */
+.checkbox-group {
+    margin: 20px 0;
+}
+
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    font-weight: normal;
+    cursor: pointer;
+    color: var(--text-secondary);
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: auto;
+    margin-right: 8px;
+    transform: scale(1.2);
+}
+
+/* 제출 버튼 */
+.submit-btn {
+    width: 100%;
+    padding: 15px;
+    background-color: var(--accent-color);
+    color: var(--bg-secondary);
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 10px;
+}
+
+.submit-btn:hover {
+    background-color: var(--accent-hover);
+}
+
+.submit-btn:disabled {
+    background-color: var(--text-muted);
+    cursor: not-allowed;
+}
+
+/* 인증 링크 */
+.auth-links {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-light);
+}
+
+.auth-links a {
+    color: var(--accent-color);
+    text-decoration: none;
+    font-size: 13px;
+    margin: 0 10px;
+}
+
+.auth-links a:hover {
+    text-decoration: underline;
+}
+
+/* 폼 전환 애니메이션 */
+.auth-form {
+    transition: opacity 0.3s ease-in-out;
+}
+
+.auth-form.fade-out {
+    opacity: 0;
+}
+
+.auth-form.fade-in {
+    opacity: 1;
+}
+
+/* 비밀번호 강도 표시 */
+.password-strength {
+    margin-top: 5px;
+    height: 5px;
+    background-color: var(--border-light);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.password-strength-bar {
+    height: 100%;
+    transition: width 0.3s, background-color 0.3s;
+}
+
+.password-strength-bar.weak {
+    width: 33%;
+    background-color: var(--danger-color);
+}
+
+.password-strength-bar.medium {
+    width: 66%;
+    background-color: var(--warning-color);
+}
+
+.password-strength-bar.strong {
+    width: 100%;
+    background-color: var(--success-color);
+}
+
+/* 로딩 상태 */
+.form-group.loading input {
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="%23666" stroke-width="2" stroke-dasharray="12" stroke-linecap="round"><animateTransform attributeName="transform" type="rotate" values="0 10 10;360 10 10" dur="1s" repeatCount="indefinite"/></circle></svg>');
+    background-repeat: no-repeat;
+    background-position: right 15px center;
+    background-size: 16px;
+}
+
+/* 에러 상태 */
+.form-group.error input {
+    border-color: var(--danger-color);
+    box-shadow: 0 0 0 3px rgba(255, 71, 87, 0.1);
+}
+
+.form-group.error .check-message {
+    color: var(--danger-color);
+}
+
+/* 성공 상태 */
+.form-group.success input {
+    border-color: var(--success-color);
+    box-shadow: 0 0 0 3px rgba(50, 201, 85, 0.1);
+}
+
+.form-group.success .check-message {
+    color: var(--success-color);
+}
+
+/* 소셜 로그인 (미래 확장용) */
+.social-login {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-light);
+}
+
+.social-login p {
+    text-align: center;
+    margin-bottom: 15px;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.social-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.social-btn {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--bg-secondary);
+    cursor: pointer;
+    text-align: center;
+    font-size: 13px;
+    transition: all 0.3s;
+}
+
+.social-btn:hover {
+    background-color: var(--bg-primary);
+}
+
+.social-btn.kakao {
+    background-color: #fee500;
+    color: #000;
+    border-color: #fee500;
+}
+
+.social-btn.naver {
+    background-color: #03c75a;
+    color: white;
+    border-color: #03c75a;
+}
+
+.social-btn.google {
+    background-color: #4285f4;
+    color: white;
+    border-color: #4285f4;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 480px) {
+    .auth-container {
+        margin: 20px auto;
+        padding: 0 15px;
+    }
+    
+    .auth-form {
+        padding: 20px;
+    }
+    
+    .form-group:has(button) {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .form-group:has(button) input {
+        margin-bottom: 5px;
+    }
+    
+    .social-buttons {
+        flex-direction: column;
+    }
+}

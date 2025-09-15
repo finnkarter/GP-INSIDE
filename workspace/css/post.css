@@ -1,0 +1,588 @@
+/* 게시글 보기 페이지 스타일 */
+
+.post-container {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+}
+
+/* 게시글 네비게이션 */
+.post-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: var(--bg-primary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.back-btn {
+    color: var(--accent-color);
+    text-decoration: none;
+    font-size: 13px;
+    padding: 5px 10px;
+    border: 1px solid var(--accent-color);
+    border-radius: 3px;
+}
+
+.back-btn:hover {
+    background-color: var(--bg-tertiary);
+}
+
+.post-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.post-actions button {
+    padding: 5px 10px;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-secondary);
+    color: var(--text-secondary);
+    font-size: 11px;
+    border-radius: 3px;
+    cursor: pointer;
+}
+
+.post-actions button:hover {
+    background-color: var(--bg-primary);
+}
+
+/* 게시글 헤더 */
+.post-header {
+    padding: 20px;
+    border-bottom: 1px solid #ddd;
+}
+
+.post-meta {
+    margin-bottom: 10px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.gallery-name {
+    color: var(--accent-color);
+    margin-right: 10px;
+    font-weight: 500;
+}
+
+.post-number {
+    color: var(--text-muted);
+}
+
+.post-title {
+    font-size: 20px;
+    color: var(--text-primary);
+    margin-bottom: 15px;
+    line-height: 1.3;
+    font-weight: 600;
+}
+
+.post-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 10px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.author-info {
+    display: flex;
+    gap: 15px;
+    font-size: 12px;
+}
+
+.author {
+    color: #333;
+    font-weight: bold;
+}
+
+.author.admin {
+    color: #ff4444;
+}
+
+.date {
+    color: var(--text-secondary);
+}
+
+.post-stats {
+    display: flex;
+    gap: 15px;
+    font-size: 12px;
+    color: #666;
+}
+
+.post-stats strong {
+    color: #0066cc;
+}
+
+/* 게시글 내용 */
+.post-content {
+    padding: 20px;
+    border-bottom: 1px solid #ddd;
+}
+
+.content {
+    line-height: 1.6;
+    font-size: 14px;
+    color: var(--text-primary);
+    margin-bottom: 30px;
+    min-height: 200px;
+    background-color: var(--bg-secondary);
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid var(--border-light);
+}
+
+.content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 3px;
+    margin: 10px 0;
+}
+
+.content p {
+    margin-bottom: 10px;
+}
+
+.content pre {
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-radius: 3px;
+    overflow-x: auto;
+    margin: 10px 0;
+}
+
+.content blockquote {
+    border-left: 3px solid #0066cc;
+    padding-left: 15px;
+    margin: 10px 0;
+    color: #666;
+    background-color: #f8f9fa;
+    padding: 10px 15px;
+    border-radius: 0 3px 3px 0;
+}
+
+/* 추천/비추천 버튼 */
+.vote-section {
+    text-align: center;
+    margin: 30px 0;
+}
+
+.vote-btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 3px;
+    font-size: 14px;
+    cursor: pointer;
+    margin: 0 10px;
+    transition: all 0.3s;
+}
+
+.like-btn {
+    background-color: #0066cc;
+    color: white;
+}
+
+.like-btn:hover {
+    background-color: #0052a3;
+}
+
+.like-btn.voted {
+    background-color: #28a745;
+}
+
+.dislike-btn {
+    background-color: #dc3545;
+    color: white;
+}
+
+.dislike-btn:hover {
+    background-color: #c82333;
+}
+
+.dislike-btn.voted {
+    background-color: #6c757d;
+}
+
+/* 게시글 관리 */
+.post-management {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.edit-btn {
+    background-color: #28a745;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    margin-right: 10px;
+    font-size: 12px;
+}
+
+.edit-btn:hover {
+    background-color: #218838;
+}
+
+.delete-btn {
+    background-color: #dc3545;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.delete-btn:hover {
+    background-color: #c82333;
+}
+
+/* 이전/다음 게시글 네비게이션 */
+.post-navigation {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #ddd;
+}
+
+.nav-item {
+    padding: 10px 20px;
+    border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    gap: 10px;
+}
+
+.nav-item:last-child {
+    border-bottom: none;
+}
+
+.nav-label {
+    color: #666;
+    font-size: 12px;
+    width: 50px;
+    flex-shrink: 0;
+}
+
+.nav-item a {
+    color: #333;
+    text-decoration: none;
+    font-size: 12px;
+    flex: 1;
+}
+
+.nav-item a:hover {
+    color: #0066cc;
+}
+
+/* 댓글 섹션 */
+.comments-section {
+    padding: 20px;
+}
+
+.comments-section h3 {
+    font-size: 16px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.login-prompt {
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    padding: 20px;
+    text-align: center;
+    border-radius: 3px;
+    margin-bottom: 20px;
+}
+
+.login-prompt a {
+    color: #0066cc;
+    text-decoration: none;
+}
+
+.comment-write {
+    margin-bottom: 30px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+    background-color: var(--bg-secondary);
+}
+
+.comment-write textarea {
+    width: 100%;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 12px;
+    font-size: 14px;
+    resize: vertical;
+    margin-bottom: 10px;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.comment-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.comment-options label {
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    color: #666;
+}
+
+.comment-options input[type="checkbox"] {
+    margin-right: 5px;
+}
+
+.submit-btn {
+    background-color: #0066cc;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.submit-btn:hover {
+    background-color: #0052a3;
+}
+
+/* 댓글 목록 */
+.comments-list {
+    border-top: 2px solid #0066cc;
+}
+
+.comment-item {
+    padding: 20px;
+    border-bottom: 1px solid var(--border-light);
+    background-color: var(--bg-secondary);
+    margin-bottom: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border-light);
+}
+
+.comment-item:last-child {
+    border-bottom: none;
+}
+
+.comment-item.reply {
+    margin-left: 30px;
+    background-color: var(--bg-tertiary);
+    border-left: 3px solid var(--accent-color);
+}
+
+.comment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.comment-author {
+    font-weight: bold;
+    font-size: 13px;
+    color: var(--text-primary);
+}
+
+.comment-author.admin {
+    color: var(--danger-color);
+}
+
+.comment-author.anonymous {
+    color: var(--text-secondary);
+}
+
+.comment-date {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+.comment-content {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-primary);
+    margin-bottom: 15px;
+    background-color: var(--bg-primary);
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border-light);
+}
+
+.comment-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.comment-actions button {
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 11px;
+    cursor: pointer;
+    padding: 2px 5px;
+}
+
+.comment-actions button:hover {
+    color: #0066cc;
+}
+
+.comment-vote {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.comment-vote button {
+    font-size: 10px;
+    padding: 2px 6px;
+    border: 1px solid #ddd;
+    background-color: white;
+    border-radius: 2px;
+}
+
+.comment-vote .like-btn.voted {
+    background-color: #0066cc;
+    color: white;
+}
+
+/* 대댓글 작성 폼 */
+.reply-form {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f0f0f0;
+    border-radius: 3px;
+    display: none;
+}
+
+.reply-form textarea {
+    width: 100%;
+    height: 60px;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 12px;
+    margin-bottom: 8px;
+}
+
+.reply-form .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 5px;
+}
+
+.reply-form button {
+    padding: 5px 10px;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    font-size: 11px;
+    cursor: pointer;
+}
+
+.reply-form .submit {
+    background-color: #0066cc;
+    color: white;
+    border-color: #0066cc;
+}
+
+.reply-form .cancel {
+    background-color: white;
+    color: #666;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .post-nav {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .post-info {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    
+    .post-stats {
+        gap: 10px;
+    }
+    
+    .vote-section {
+        margin: 20px 0;
+    }
+    
+    .vote-btn {
+        display: block;
+        margin: 5px auto;
+        width: 200px;
+    }
+    
+    .comment-item.reply {
+        margin-left: 15px;
+    }
+    
+    .comment-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+}
+
+/* 첨부파일 표시 */
+.attachments {
+    margin: 20px 0;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+}
+
+.attachments h4 {
+    font-size: 13px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.attachment-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.attachment-item:last-child {
+    border-bottom: none;
+}
+
+.attachment-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.attachment-name {
+    flex: 1;
+    font-size: 12px;
+    color: #333;
+}
+
+.attachment-size {
+    font-size: 11px;
+    color: #666;
+}
+
+.attachment-download {
+    color: #0066cc;
+    text-decoration: none;
+    font-size: 11px;
+}
+
+.attachment-download:hover {
+    text-decoration: underline;
+}

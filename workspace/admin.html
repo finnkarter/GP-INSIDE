@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 페이지 - 영감 인사이드</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+    <div class="wrapper">
+        <!-- 헤더 -->
+        <header class="header">
+            <div class="header-container">
+                <div class="logo">
+                    <a href="index.html">
+                        <h1>영감 인사이드</h1>
+                        <span class="subtitle">Admin Panel</span>
+                    </a>
+                </div>
+                <div class="user-menu">
+                    <button onclick="toggleTheme()" class="theme-toggle" title="다크 테마 전환">
+                        <span id="themeIcon">🌙</span>
+                    </button>
+                    <div class="user-section">
+                        <span id="userNickname"></span>님 (최고 관리자)
+                        <a href="index.html">메인으로</a>
+                        <button onclick="logout()">로그아웃</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- 메인 컨텐츠 -->
+        <main class="main">
+            <div class="admin-container">
+                <!-- 사이드바 -->
+                <aside class="admin-sidebar">
+                    <nav class="admin-nav">
+                        <h3>관리 메뉴</h3>
+                        <ul>
+                            <li><a href="#dashboard" class="nav-link active" onclick="showAdminSection('dashboard')">대시보드</a></li>
+                            <li><a href="#users" class="nav-link" onclick="showAdminSection('users')">사용자 관리</a></li>
+                            <li><a href="#posts" class="nav-link" onclick="showAdminSection('posts')">게시글 관리</a></li>
+                            <li><a href="#comments" class="nav-link" onclick="showAdminSection('comments')">댓글 관리</a></li>
+                            <li><a href="#galleries" class="nav-link" onclick="showAdminSection('galleries')">갤러리 관리</a></li>
+                            <li><a href="#reports" class="nav-link" onclick="showAdminSection('reports')">신고 관리</a></li>
+                        </ul>
+                    </nav>
+                </aside>
+
+                <!-- 메인 컨텐츠 -->
+                <div class="admin-content">
+                    <!-- 대시보드 -->
+                    <section id="dashboard" class="admin-section active">
+                        <h2>📊 대시보드</h2>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-icon">👥</div>
+                                <div class="stat-info">
+                                    <div class="stat-value" id="totalUsers">0</div>
+                                    <div class="stat-label">총 사용자</div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">📝</div>
+                                <div class="stat-info">
+                                    <div class="stat-value" id="totalPosts">0</div>
+                                    <div class="stat-label">총 게시글</div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">💬</div>
+                                <div class="stat-info">
+                                    <div class="stat-value" id="totalComments">0</div>
+                                    <div class="stat-label">총 댓글</div>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">📁</div>
+                                <div class="stat-info">
+                                    <div class="stat-value" id="totalGalleries">0</div>
+                                    <div class="stat-label">총 갤러리</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="recent-activity">
+                            <h3>최근 활동</h3>
+                            <div id="recentActivity" class="activity-list">
+                                <!-- 최근 활동 동적 로드 -->
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- 사용자 관리 -->
+                    <section id="users" class="admin-section">
+                        <h2>👥 사용자 관리</h2>
+                        <div class="section-controls">
+                            <input type="text" id="userSearch" placeholder="사용자 검색..." onkeyup="searchUsers()">
+                            <select id="userFilter" onchange="filterUsers()">
+                                <option value="all">전체</option>
+                                <option value="admin">관리자</option>
+                                <option value="normal">일반 사용자</option>
+                                <option value="recent">최근 가입</option>
+                            </select>
+                        </div>
+                        <div id="usersList" class="admin-table-container">
+                            <!-- 사용자 목록 동적 로드 -->
+                        </div>
+                    </section>
+
+                    <!-- 게시글 관리 -->
+                    <section id="posts" class="admin-section">
+                        <h2>📝 게시글 관리</h2>
+                        <div class="section-controls">
+                            <input type="text" id="postSearch" placeholder="게시글 검색..." onkeyup="searchPosts()">
+                            <select id="postFilter" onchange="filterPosts()">
+                                <option value="all">전체</option>
+                                <option value="notice">공지</option>
+                                <option value="normal">일반</option>
+                                <option value="popular">인기글</option>
+                            </select>
+                        </div>
+                        <div id="postsList" class="admin-table-container">
+                            <!-- 게시글 목록 동적 로드 -->
+                        </div>
+                    </section>
+
+                    <!-- 댓글 관리 -->
+                    <section id="comments" class="admin-section">
+                        <h2>💬 댓글 관리</h2>
+                        <div class="section-controls">
+                            <input type="text" id="commentSearch" placeholder="댓글 검색..." onkeyup="searchComments()">
+                            <select id="commentFilter" onchange="filterComments()">
+                                <option value="all">전체</option>
+                                <option value="recent">최근</option>
+                                <option value="reported">신고된 댓글</option>
+                            </select>
+                        </div>
+                        <div id="commentsList" class="admin-table-container">
+                            <!-- 댓글 목록 동적 로드 -->
+                        </div>
+                    </section>
+
+                    <!-- 갤러리 관리 -->
+                    <section id="galleries" class="admin-section">
+                        <h2>📁 갤러리 관리</h2>
+                        <div class="section-controls">
+                            <button onclick="showAddGalleryModal()" class="btn btn-primary">새 갤러리 추가</button>
+                        </div>
+                        <div id="galleriesList" class="admin-table-container">
+                            <!-- 갤러리 목록 동적 로드 -->
+                        </div>
+                    </section>
+
+                    <!-- 신고 관리 -->
+                    <section id="reports" class="admin-section">
+                        <h2>🚨 신고 관리</h2>
+                        <div class="section-controls">
+                            <select id="reportFilter" onchange="filterReports()">
+                                <option value="all">전체</option>
+                                <option value="pending">대기중</option>
+                                <option value="resolved">처리완료</option>
+                                <option value="rejected">반려</option>
+                            </select>
+                        </div>
+                        <div id="reportsList" class="admin-table-container">
+                            <!-- 신고 목록 동적 로드 -->
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+
+        <!-- 푸터 -->
+        <footer class="footer">
+            <div class="footer-container">
+                <p>&copy; 2025 영감 인사이드 관리자 패널</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 갤러리 추가 모달 -->
+    <div id="addGalleryModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>새 갤러리 추가</h3>
+                <button onclick="closeAddGalleryModal()" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="addGalleryForm" onsubmit="addGallery(event)">
+                    <div class="form-group">
+                        <label for="galleryId">갤러리 ID</label>
+                        <input type="text" id="galleryId" name="id" required pattern="^[a-z0-9_]+$" 
+                               placeholder="영문 소문자, 숫자, 언더스코어만">
+                    </div>
+                    <div class="form-group">
+                        <label for="galleryName">갤러리 이름</label>
+                        <input type="text" id="galleryName" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="galleryDescription">갤러리 설명</label>
+                        <textarea id="galleryDescription" name="description" rows="3"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">추가</button>
+                        <button type="button" onclick="closeAddGalleryModal()" class="btn">취소</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/common.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>
