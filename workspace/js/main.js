@@ -453,3 +453,8 @@ trackPagePerformance();
 // 전역 함수 등록
 window.refreshMainData = refreshMainData;
 window.navigateToGallery = navigateToGallery;
+window.createWelcomePost = createWelcomePost;
+window.refreshNotices = refreshNotices;
+window.createNotice = createNotice;
+
+
