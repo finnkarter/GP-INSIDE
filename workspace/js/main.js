@@ -1,10 +1,9 @@
 // 메인 페이지 JavaScript
 
 document.addEventListener('DOMContentLoaded', function() {
-    // 초기화 후 메인 페이지 데이터 로드
-    setTimeout(() => {
-        loadMainPageData();
-    }, 100);
+    // common.js의 초기화가 완료된 후 메인 페이지 데이터 로드
+    init(); // common.js의 초기화 함수 실행
+    loadMainPageData(); // 초기화 직후 데이터 로드
 });
 
 // 메인 페이지 데이터 로드
