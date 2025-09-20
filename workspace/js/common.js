@@ -832,3 +832,15 @@ window.toggleTheme = toggleTheme;
 window.navigateToSuggestion = navigateToSuggestion;
 window.closeNotification = closeNotification;
 window.toggleBookmark = toggleBookmark;
+window.getGalleryById = getGalleryById;
+window.getGalleries = getGalleries;
+window.getPosts = getPosts;
+window.getComments = getComments;
+window.init = init;
+window.updateGalleryStats = updateGalleryStats;
+window.showError = showError;
+window.showSuccess = showSuccess;
+window.escapeHtml = escapeHtml;
+
+// 즉시 초기화 실행
+init();

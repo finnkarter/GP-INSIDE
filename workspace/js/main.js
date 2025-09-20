@@ -456,5 +456,3 @@ window.navigateToGallery = navigateToGallery;
 window.createWelcomePost = createWelcomePost;
 window.refreshNotices = refreshNotices;
 window.createNotice = createNotice;
-
-

@@ -6,7 +6,8 @@ let postsPerPage = 20;
 let allPosts = [];
 let filteredPosts = [];
 
-document.addEventListener('DOMContentLoaded', function() {
+// common.js가 먼저 초기화될 수 있도록 약간의 지연을 줌
+document.addEventListener('DOMContentLoaded', () => {
     const urlParams = getUrlParams();
     currentGalleryId = urlParams.id || 'free';
     
