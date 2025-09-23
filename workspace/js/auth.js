@@ -1,319 +1,155 @@
-// 인증 관련 JavaScript
-
-let isIdChecked = false;
-let isNicknameChecked = false;
-
-// 페이지 로드 시 초기화
-document.addEventListener('DOMContentLoaded', function() {
-    const urlParams = getUrlParams();
-    
-    // URL 파라미터에 따라 폼 표시
-    if (urlParams.mode === 'signup') {
-        showSignupForm();
-    }
-    
-    // 이미 로그인된 경우 메인으로 리다이렉트
-    if (currentUser) {
-        window.location.href = 'index.html';
-        return;
-    }
-    
-    setupFormValidation();
-});
-
-// 로그인 폼 표시
-function showLoginForm() {
-    document.getElementById('loginForm').style.display = 'block';
-    document.getElementById('signupForm').style.display = 'none';
-}
-
-// 회원가입 폼 표시
-function showSignupForm() {
-    document.getElementById('loginForm').style.display = 'none';
-    document.getElementById('signupForm').style.display = 'block';
-}
-
-// 로그인 처리
-function handleLogin(event) {
-    event.preventDefault();
-    
-    const formData = new FormData(event.target);
-    const id = formData.get('id').trim();
-    const password = formData.get('password').trim();
-    
-    if (!id || !password) {
-        showError('아이디와 비밀번호를 입력해주세요.');
-        return;
-    }
-    
-    const users = getUsers();
-    const user = users.find(u => u.id === id && u.password === password);
-    
-    if (user) {
-        // 로그인 성공
-        currentUser = user;
-        localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(user));
+// 인증 및 사용자 관리 모듈
+class AuthManager {
+    constructor() {
+        this.users = JSON.parse(localStorage.getItem('gp-users') || '[]');
+        this.currentUser = JSON.parse(localStorage.getItem('gp-current-user') || 'null');
         
-        // 사용자 상태를 활성으로 업데이트 (로그인 시간 포함)
-        updateUserStatus(user.id, true);
+        // 관리자 계정 초기화
+        this.initAdminAccount();
+    }
+
+    // 관리자 계정 초기화
+    initAdminAccount() {
+        const adminExists = this.users.find(u => u.username === 'hamilton44');
         
-        showSuccess('로그인 성공!');
-        
-        // 이전 페이지로 돌아가거나 메인으로
-        const referrer = document.referrer;
-        if (referrer && referrer.includes(window.location.hostname)) {
-            window.location.href = referrer;
-        } else {
-            window.location.href = 'index.html';
-        }
-    } else {
-        showError('아이디 또는 비밀번호가 올바르지 않습니다.');
-    }
-}
-
-// 회원가입 처리
-function handleSignup(event) {
-    event.preventDefault();
-    
-    const formData = new FormData(event.target);
-    const id = formData.get('id').trim();
-    const password = formData.get('password').trim();
-    const passwordConfirm = formData.get('passwordConfirm').trim();
-    const nickname = formData.get('nickname').trim();
-    const email = formData.get('email').trim();
-    const agreeTerms = formData.get('agreeTerms');
-    
-    // 유효성 검사
-    if (!validateSignupForm(id, password, passwordConfirm, nickname, agreeTerms)) {
-        return;
-    }
-    
-    // 중복 확인
-    if (!isIdChecked) {
-        showError('아이디 중복확인을 해주세요.');
-        return;
-    }
-    
-    if (!isNicknameChecked) {
-        showError('닉네임 중복확인을 해주세요.');
-        return;
-    }
-    
-    // 사용자 생성
-    const newUser = {
-        id: id,
-        password: password, // 실제로는 해시화해야 함
-        nickname: nickname,
-        email: email,
-        joinDate: new Date().toISOString(),
-        lastLogin: null,
-        lastActivity: new Date().toISOString(),
-        isActive: false, // 회원가입 시에는 비활성 상태
-        posts: [],
-        comments: [],
-        likes: [],
-        bookmarks: [],
-        isAdmin: false,
-        role: 'user'
-    };
-    
-    const users = getUsers();
-    users.push(newUser);
-    saveUsers(users);
-    
-    showSuccess('회원가입이 완료되었습니다! 로그인해주세요.');
-    showLoginForm();
-    
-    // 폼 초기화
-    event.target.reset();
-    resetValidationFlags();
-}
-
-// 회원가입 폼 유효성 검사
-function validateSignupForm(id, password, passwordConfirm, nickname, agreeTerms) {
-    // 아이디 검사
-    if (!id) {
-        showError('아이디를 입력해주세요.');
-        return false;
-    }
-    
-    if (id.length < 4 || id.length > 20) {
-        showError('아이디는 4-20자 사이여야 합니다.');
-        return false;
-    }
-    
-    if (!/^[a-zA-Z0-9_]+$/.test(id)) {
-        showError('아이디는 영문, 숫자, 언더스코어만 사용할 수 있습니다.');
-        return false;
-    }
-    
-    // 비밀번호 검사
-    if (!password) {
-        showError('비밀번호를 입력해주세요.');
-        return false;
-    }
-    
-    if (password.length < 6) {
-        showError('비밀번호는 6자 이상이어야 합니다.');
-        return false;
-    }
-    
-    if (password !== passwordConfirm) {
-        showError('비밀번호가 일치하지 않습니다.');
-        return false;
-    }
-    
-    // 닉네임 검사
-    if (!nickname) {
-        showError('닉네임을 입력해주세요.');
-        return false;
-    }
-    
-    if (nickname.length < 2 || nickname.length > 12) {
-        showError('닉네임은 2-12자 사이여야 합니다.');
-        return false;
-    }
-    
-    // 약관 동의 확인
-    if (!agreeTerms) {
-        showError('이용약관에 동의해주세요.');
-        return false;
-    }
-    
-    return true;
-}
-
-// 아이디 중복 확인
-function checkIdDuplicate() {
-    const idInput = document.getElementById('signupId');
-    const id = idInput.value.trim();
-    const messageElement = document.getElementById('idCheckMessage');
-    
-    if (!id) {
-        showMessage(messageElement, '아이디를 입력해주세요.', 'error');
-        return;
-    }
-    
-    if (id.length < 4 || id.length > 20) {
-        showMessage(messageElement, '아이디는 4-20자 사이여야 합니다.', 'error');
-        return;
-    }
-    
-    if (!/^[a-zA-Z0-9_]+$/.test(id)) {
-        showMessage(messageElement, '아이디는 영문, 숫자, 언더스코어만 사용할 수 있습니다.', 'error');
-        return;
-    }
-    
-    const users = getUsers();
-    const existingUser = users.find(user => user.id === id);
-    
-    if (existingUser) {
-        showMessage(messageElement, '이미 사용중인 아이디입니다.', 'error');
-        isIdChecked = false;
-    } else {
-        showMessage(messageElement, '사용 가능한 아이디입니다.', 'success');
-        isIdChecked = true;
-    }
-}
-
-// 닉네임 중복 확인
-function checkNicknameDuplicate() {
-    const nicknameInput = document.getElementById('signupNickname');
-    const nickname = nicknameInput.value.trim();
-    const messageElement = document.getElementById('nicknameCheckMessage');
-    
-    if (!nickname) {
-        showMessage(messageElement, '닉네임을 입력해주세요.', 'error');
-        return;
-    }
-    
-    if (nickname.length < 2 || nickname.length > 12) {
-        showMessage(messageElement, '닉네임은 2-12자 사이여야 합니다.', 'error');
-        return;
-    }
-    
-    const users = getUsers();
-    const existingUser = users.find(user => user.nickname === nickname);
-    
-    if (existingUser) {
-        showMessage(messageElement, '이미 사용중인 닉네임입니다.', 'error');
-        isNicknameChecked = false;
-    } else {
-        showMessage(messageElement, '사용 가능한 닉네임입니다.', 'success');
-        isNicknameChecked = true;
-    }
-}
-
-// 메시지 표시 헬퍼
-function showMessage(element, message, type) {
-    element.textContent = message;
-    element.className = `check-message ${type}`;
-}
-
-// 폼 검증 플래그 리셋
-function resetValidationFlags() {
-    isIdChecked = false;
-    isNicknameChecked = false;
-    
-    document.getElementById('idCheckMessage').textContent = '';
-    document.getElementById('nicknameCheckMessage').textContent = '';
-    document.getElementById('passwordCheckMessage').textContent = '';
-}
-
-// 실시간 폼 검증 설정
-function setupFormValidation() {
-    // 아이디 입력 시 중복확인 플래그 리셋
-    const idInput = document.getElementById('signupId');
-    if (idInput) {
-        idInput.addEventListener('input', function() {
-            isIdChecked = false;
-            document.getElementById('idCheckMessage').textContent = '';
-        });
-    }
-    
-    // 닉네임 입력 시 중복확인 플래그 리셋
-    const nicknameInput = document.getElementById('signupNickname');
-    if (nicknameInput) {
-        nicknameInput.addEventListener('input', function() {
-            isNicknameChecked = false;
-            document.getElementById('nicknameCheckMessage').textContent = '';
-        });
-    }
-    
-    // 비밀번호 확인 실시간 검증
-    const passwordInput = document.getElementById('signupPassword');
-    const passwordConfirmInput = document.getElementById('signupPasswordConfirm');
-    const passwordMessage = document.getElementById('passwordCheckMessage');
-    
-    if (passwordConfirmInput && passwordMessage) {
-        passwordConfirmInput.addEventListener('input', function() {
-            const password = passwordInput.value;
-            const passwordConfirm = this.value;
+        if (!adminExists) {
+            const adminUser = {
+                id: 'admin_' + Date.now(),
+                username: 'hamilton44',
+                password: 'lewishamilton44!',
+                nickname: '관리자',
+                isAdmin: true,
+                createdAt: new Date().toISOString()
+            };
             
-            if (passwordConfirm) {
-                if (password === passwordConfirm) {
-                    showMessage(passwordMessage, '비밀번호가 일치합니다.', 'success');
-                } else {
-                    showMessage(passwordMessage, '비밀번호가 일치하지 않습니다.', 'error');
-                }
-            } else {
-                passwordMessage.textContent = '';
-            }
-        });
+            this.users.push(adminUser);
+            this.saveUsers();
+        }
     }
-    
-    // 비밀번호 강도 표시 (향후 구현)
-    if (passwordInput) {
-        passwordInput.addEventListener('input', function() {
-            // 비밀번호 강도 검사 로직 추가 가능
-        });
+
+    // 회원가입
+    register(username, password, confirmPassword, nickname) {
+        // 유효성 검사
+        if (username.length < 4 || username.length > 20) {
+            throw new Error('사용자명은 4-20자여야 합니다.');
+        }
+
+        if (password.length < 8) {
+            throw new Error('비밀번호는 8자 이상이어야 합니다.');
+        }
+
+        if (password !== confirmPassword) {
+            throw new Error('비밀번호가 일치하지 않습니다.');
+        }
+
+        if (!nickname || nickname.length < 2) {
+            throw new Error('닉네임은 2자 이상이어야 합니다.');
+        }
+
+        // 중복 검사
+        if (this.users.find(u => u.username === username)) {
+            throw new Error('이미 존재하는 사용자명입니다.');
+        }
+
+        if (this.users.find(u => u.nickname === nickname)) {
+            throw new Error('이미 존재하는 닉네임입니다.');
+        }
+
+        // 관리자 계정명 보호
+        if (username === 'hamilton44' || nickname === '관리자') {
+            throw new Error('사용할 수 없는 계정 정보입니다.');
+        }
+
+        // 사용자 생성
+        const user = {
+            id: Date.now().toString(),
+            username,
+            password, // 실제 운영에서는 해시화 필요
+            nickname,
+            isAdmin: false,
+            createdAt: new Date().toISOString()
+        };
+
+        this.users.push(user);
+        this.saveUsers();
+        
+        return user;
+    }
+
+    // 로그인
+    login(username, password) {
+        const user = this.users.find(u => u.username === username && u.password === password);
+
+        if (!user) {
+            throw new Error('사용자명 또는 비밀번호가 올바르지 않습니다.');
+        }
+
+        this.currentUser = user;
+        localStorage.setItem('gp-current-user', JSON.stringify(user));
+        
+        return user;
+    }
+
+    // 로그아웃
+    logout() {
+        this.currentUser = null;
+        localStorage.removeItem('gp-current-user');
+    }
+
+    // 현재 사용자 정보
+    getCurrentUser() {
+        return this.currentUser;
+    }
+
+    // 관리자 여부 확인
+    isAdmin() {
+        return this.currentUser && this.currentUser.isAdmin === true;
+    }
+
+    // 로그인 여부 확인
+    isLoggedIn() {
+        return this.currentUser !== null;
+    }
+
+    // 사용자 목록 가져오기 (관리자 전용)
+    getAllUsers() {
+        if (!this.isAdmin()) {
+            throw new Error('관리자 권한이 필요합니다.');
+        }
+        return this.users;
+    }
+
+    // 사용자 삭제 (관리자 전용)
+    deleteUser(userId) {
+        if (!this.isAdmin()) {
+            throw new Error('관리자 권한이 필요합니다.');
+        }
+
+        const userIndex = this.users.findIndex(u => u.id === userId);
+        if (userIndex === -1) {
+            throw new Error('사용자를 찾을 수 없습니다.');
+        }
+
+        // 관리자 계정은 삭제 불가
+        if (this.users[userIndex].isAdmin) {
+            throw new Error('관리자 계정은 삭제할 수 없습니다.');
+        }
+
+        this.users.splice(userIndex, 1);
+        this.saveUsers();
+    }
+
+    // 사용자 데이터 저장
+    saveUsers() {
+        localStorage.setItem('gp-users', JSON.stringify(this.users));
+    }
+
+    // 통계 정보
+    getStats() {
+        return {
+            totalUsers: this.users.length,
+            adminUsers: this.users.filter(u => u.isAdmin).length,
+            regularUsers: this.users.filter(u => !u.isAdmin).length
+        };
     }
 }
-
-// 전역 함수 등록
-window.showLoginForm = showLoginForm;
-window.showSignupForm = showSignupForm;
-window.handleLogin = handleLogin;
-window.handleSignup = handleSignup;
-window.checkIdDuplicate = checkIdDuplicate;
-window.checkNicknameDuplicate = checkNicknameDuplicate;

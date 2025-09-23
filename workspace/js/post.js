@@ -1,487 +1,275 @@
-// 게시글 보기 페이지 JavaScript
-
-let currentPostId = '';
-let currentPost = null;
-
-document.addEventListener('DOMContentLoaded', function() {
-    const urlParams = getUrlParams();
-    currentPostId = urlParams.id;
-    
-    if (!currentPostId) {
-        showError('게시글을 찾을 수 없습니다.');
-        window.location.href = 'index.html';
-        return;
-    }
-    
-    loadPost();
-    loadComments();
-    setupCommentForm();
-});
-
-// 게시글 로드
-function loadPost() {
-    currentPost = getPostById(currentPostId);
-    
-    if (!currentPost) {
-        showError('게시글을 찾을 수 없습니다.');
-        window.location.href = 'index.html';
-        return;
-    }
-    
-    // 조회수 증가
-    incrementPostViews();
-    
-    // 갤러리 정보
-    const gallery = getGalleryById(currentPost.galleryId);
-    const galleryName = gallery ? gallery.name : '알 수 없음';
-    document.getElementById('galleryName').textContent = galleryName;
-    
-    // 게시글 정보 표시
-    document.getElementById('postNumber').textContent = `No. ${currentPost.id}`;
-    document.getElementById('postTitle').textContent = currentPost.title;
-    document.getElementById('postAuthor').textContent = currentPost.author;
-    document.getElementById('postViews').textContent = currentPost.views || 0;
-    document.getElementById('postLikes').textContent = currentPost.likes || 0;
-    
-    // 게시글 내용
-    const contentElement = document.getElementById('postContent');
-    contentElement.innerHTML = nl2br(escapeHtml(currentPost.content));
-    
-    // 추천/비추천 수 표시
-    document.getElementById('likeCount').textContent = currentPost.likes || 0;
-    document.getElementById('dislikeCount').textContent = currentPost.dislikes || 0;
-    
-    // 작성자 또는 관리자 권한 확인
-    if (currentUser && (currentUser.id === currentPost.authorId || currentUser.isAdmin)) {
-        document.getElementById('postManagement').style.display = 'block';
-    }
-    
-    // 댓글 수 표시
-    const comments = getComments().filter(c => c.postId === currentPostId);
-    document.getElementById('commentCount').textContent = comments.length;
-    document.getElementById('commentCountDisplay').textContent = comments.length;
-    
-    // 페이지 제목 설정
-    document.title = `${currentPost.title} - ${galleryName} - 영감 인사이드`;
-    
-    // 북마크 상태 업데이트
-    if (currentUser) {
-        const isBookmarked = isPostBookmarked(currentPostId);
-        updateBookmarkButton(currentPostId, isBookmarked);
-    }
-    
-    // 이전/다음 게시글 로드
-    loadAdjacentPosts();
-}
-
-// 조회수 증가
-function incrementPostViews() {
-    const viewedPosts = JSON.parse(sessionStorage.getItem('viewedPosts') || '[]');
-    
-    // 이미 본 게시글이면 조회수 증가하지 않음
-    if (!viewedPosts.includes(currentPostId)) {
-        currentPost.views = (currentPost.views || 0) + 1;
-        updatePost(currentPostId, { views: currentPost.views });
+// 게시글 및 댓글 관리 모듈
+class PostManager {
+    constructor(authManager, galleryManager) {
+        this.authManager = authManager;
+        this.galleryManager = galleryManager;
+        this.posts = JSON.parse(localStorage.getItem('gp-posts') || '[]');
+        this.comments = JSON.parse(localStorage.getItem('gp-comments') || '{}');
         
-        viewedPosts.push(currentPostId);
-        sessionStorage.setItem('viewedPosts', JSON.stringify(viewedPosts));
+        // 기본 게시글이 없으면 생성
+        if (this.posts.length === 0) {
+            this.createSamplePosts();
+        }
     }
-}
 
-// 이전/다음 게시글 로드
-function loadAdjacentPosts() {
-    const posts = getPosts()
-        .filter(post => post.galleryId === currentPost.galleryId)
-        .sort((a, b) => new Date(b.date) - new Date(a.date));
-    
-    const currentIndex = posts.findIndex(post => post.id === currentPostId);
-    
-    // 이전글 (더 최근)
-    const prevPost = currentIndex > 0 ? posts[currentIndex - 1] : null;
-    const prevLink = document.getElementById('prevPostLink');
-    if (prevPost) {
-        prevLink.href = `post.html?id=${prevPost.id}`;
-        prevLink.textContent = truncateText(prevPost.title, 50);
-    } else {
-        prevLink.parentElement.style.display = 'none';
-    }
-    
-    // 다음글 (더 오래된)
-    const nextPost = currentIndex < posts.length - 1 ? posts[currentIndex + 1] : null;
-    const nextLink = document.getElementById('nextPostLink');
-    if (nextPost) {
-        nextLink.href = `post.html?id=${nextPost.id}`;
-        nextLink.textContent = truncateText(nextPost.title, 50);
-    } else {
-        nextLink.parentElement.style.display = 'none';
-    }
-}
+    // 게시글 생성
+    createPost(title, author, content, galleryId) {
+        if (!title || !author || !content) {
+            throw new Error('모든 필드를 입력해주세요.');
+        }
 
-// 댓글 로드
-function loadComments() {
-    const comments = getComments()
-        .filter(comment => comment.postId === currentPostId)
-        .sort((a, b) => new Date(a.date) - new Date(b.date));
-    
-    const container = document.getElementById('commentsList');
-    
-    if (comments.length === 0) {
-        container.innerHTML = '<div class="empty-message">아직 댓글이 없습니다. 첫 댓글을 작성해보세요!</div>';
-        return;
-    }
-    
-    container.innerHTML = comments.map(comment => renderComment(comment)).join('');
-}
+        // 로그인한 사용자는 자동으로 닉네임 설정
+        const finalAuthor = this.authManager.isLoggedIn() ? 
+            this.authManager.getCurrentUser().nickname : author;
 
-// 댓글 렌더링
-function renderComment(comment) {
-    const isAuthor = currentUser && currentUser.id === comment.authorId;
-    const isAdmin = comment.author === 'admin' || comment.isAdmin;
-    const canManage = currentUser && (currentUser.id === comment.authorId || currentUser.isAdmin);
-    
-    let authorClass = 'comment-author';
-    if (isAdmin) {
-        authorClass += ' admin';
-    } else if (comment.isAnonymous) {
-        authorClass += ' anonymous';
-    }
-    
-    return `
-        <div class="comment-item ${comment.parentId ? 'reply' : ''}" data-comment-id="${comment.id}">
-            <div class="comment-header">
-                <span class="${authorClass}">${escapeHtml(comment.author)}</span>
-            </div>
-            <div class="comment-content">${nl2br(escapeHtml(comment.content))}</div>
-            <div class="comment-actions">
-                <div class="comment-vote">
-                    <button onclick="voteComment('${comment.id}', 'like')" class="vote-btn like-btn">
-                        👍 <span>${comment.likes || 0}</span>
-                    </button>
-                    <button onclick="voteComment('${comment.id}', 'dislike')" class="vote-btn dislike-btn">
-                        👎 <span>${comment.dislikes || 0}</span>
-                    </button>
-                </div>
-                ${!comment.parentId ? `<button onclick="showReplyForm('${comment.id}')">답글</button>` : ''}
-                ${canManage ? `<button onclick="deleteComment('${comment.id}')">삭제</button>` : ''}
-                <button onclick="reportComment('${comment.id}')">신고</button>
-            </div>
-            <div id="replyForm_${comment.id}" class="reply-form">
-                <textarea placeholder="답글을 입력하세요..." rows="3"></textarea>
-                <div class="form-actions">
-                    <button onclick="submitReply('${comment.id}')" class="submit">답글 작성</button>
-                    <button onclick="hideReplyForm('${comment.id}')" class="cancel">취소</button>
-                </div>
-            </div>
-        </div>
-    `;
-}
+        const post = {
+            id: Date.now().toString(),
+            title: title.trim(),
+            author: finalAuthor,
+            content: content.trim(),
+            galleryId: galleryId || 'free',
+            createdAt: new Date().toISOString(),
+            views: 0,
+            likes: 0,
+            isUserPost: this.authManager.isLoggedIn(),
+            authorId: this.authManager.isLoggedIn() ? this.authManager.getCurrentUser().id : null
+        };
 
-// 댓글 폼 설정
-function setupCommentForm() {
-    const loginPrompt = document.getElementById('loginPrompt');
-    const commentForm = document.getElementById('commentWriteForm');
-    
-    if (currentUser) {
-        loginPrompt.style.display = 'none';
-        commentForm.style.display = 'block';
-    } else {
-        loginPrompt.style.display = 'block';
-        commentForm.style.display = 'none';
+        this.posts.unshift(post);
+        
+        // 갤러리 통계 업데이트
+        this.galleryManager.updateGalleryStats(post.galleryId, 1);
+        
+        this.savePosts();
+        return post;
     }
-}
 
-// 댓글 작성
-function submitComment() {
-    if (!currentUser) {
-        alert('로그인이 필요합니다.');
-        return;
-    }
-    
-    const content = document.getElementById('commentContent').value.trim();
-    const isAnonymous = document.getElementById('anonymousComment').checked;
-    
-    if (!content) {
-        alert('댓글 내용을 입력해주세요.');
-        return;
-    }
-    
-    const newComment = {
-        id: generateId(),
-        postId: currentPostId,
-        authorId: currentUser.id,
-        author: isAnonymous ? '익명' : currentUser.nickname,
-        content: content,
-        date: new Date().toISOString(),
-        isAnonymous: isAnonymous,
-        likes: 0,
-        dislikes: 0,
-        parentId: null
-    };
-    
-    const comments = getComments();
-    comments.push(newComment);
-    saveComments(comments);
-    
-    // 폼 초기화
-    document.getElementById('commentContent').value = '';
-    document.getElementById('anonymousComment').checked = false;
-    
-    // 댓글 목록 새로고침
-    loadComments();
-    
-    // 댓글 수 업데이트
-    const commentCount = comments.filter(c => c.postId === currentPostId).length;
-    document.getElementById('commentCount').textContent = commentCount;
-    document.getElementById('commentCountDisplay').textContent = commentCount;
-    
-    showSuccess('댓글이 작성되었습니다.');
-}
+    // 게시글 삭제
+    deletePost(postId) {
+        const post = this.getPost(postId);
+        if (!post) {
+            throw new Error('게시글을 찾을 수 없습니다.');
+        }
 
-// 답글 폼 표시
-function showReplyForm(commentId) {
-    if (!currentUser) {
-        alert('로그인이 필요합니다.');
-        return;
-    }
-    
-    // 다른 답글 폼들 숨기기
-    document.querySelectorAll('.reply-form').forEach(form => {
-        form.style.display = 'none';
-    });
-    
-    const replyForm = document.getElementById(`replyForm_${commentId}`);
-    replyForm.style.display = 'block';
-    replyForm.querySelector('textarea').focus();
-}
+        // 삭제 권한 확인
+        if (!this.canDeletePost(post)) {
+            throw new Error('삭제 권한이 없습니다.');
+        }
 
-// 답글 폼 숨기기
-function hideReplyForm(commentId) {
-    const replyForm = document.getElementById(`replyForm_${commentId}`);
-    replyForm.style.display = 'none';
-    replyForm.querySelector('textarea').value = '';
-}
+        this.posts = this.posts.filter(p => p.id !== postId);
+        delete this.comments[postId];
+        
+        // 갤러리 통계 업데이트
+        this.galleryManager.updateGalleryStats(post.galleryId, -1);
+        
+        this.savePosts();
+        this.saveComments();
+    }
 
-// 답글 작성
-function submitReply(parentCommentId) {
-    if (!currentUser) {
-        alert('로그인이 필요합니다.');
-        return;
+    // 게시글 삭제 권한 확인
+    canDeletePost(post) {
+        const user = this.authManager.getCurrentUser();
+        if (!user) return false;
+        
+        // 관리자는 모든 게시글 삭제 가능
+        if (this.authManager.isAdmin()) return true;
+        
+        // 본인 게시글만 삭제 가능
+        return post.authorId === user.id || post.author === user.nickname;
     }
-    
-    const replyForm = document.getElementById(`replyForm_${parentCommentId}`);
-    const content = replyForm.querySelector('textarea').value.trim();
-    
-    if (!content) {
-        alert('답글 내용을 입력해주세요.');
-        return;
-    }
-    
-    const newReply = {
-        id: generateId(),
-        postId: currentPostId,
-        authorId: currentUser.id,
-        author: currentUser.nickname,
-        content: content,
-        date: new Date().toISOString(),
-        isAnonymous: false,
-        likes: 0,
-        dislikes: 0,
-        parentId: parentCommentId
-    };
-    
-    const comments = getComments();
-    comments.push(newReply);
-    saveComments(comments);
-    
-    hideReplyForm(parentCommentId);
-    loadComments();
-    
-    showSuccess('답글이 작성되었습니다.');
-}
 
-// 댓글 삭제
-function deleteComment(commentId) {
-    if (!currentUser) {
-        showNotification('로그인이 필요합니다.', 'warning');
-        return;
+    // 게시글 가져오기
+    getPost(postId) {
+        return this.posts.find(p => p.id === postId);
     }
-    
-    const comments = getComments();
-    const comment = comments.find(c => c.id === commentId);
-    
-    if (!comment) {
-        showNotification('댓글을 찾을 수 없습니다.', 'error');
-        return;
-    }
-    
-    // 권한 확인: 작성자 또는 관리자
-    if (currentUser.id !== comment.authorId && !currentUser.isAdmin) {
-        showNotification('댓글을 삭제할 권한이 없습니다.', 'error');
-        return;
-    }
-    
-    if (!confirm('댓글을 삭제하시겠습니까?')) {
-        return;
-    }
-    
-    const filteredComments = comments.filter(comment => 
-        comment.id !== commentId && comment.parentId !== commentId
-    );
-    
-    saveComments(filteredComments);
-    loadComments();
-    
-    showNotification('댓글이 삭제되었습니다.', 'success');
-}
 
-// 댓글 추천/비추천
-function voteComment(commentId, voteType) {
-    if (!currentUser) {
-        alert('로그인이 필요합니다.');
-        return;
+    // 갤러리별 게시글 목록
+    getPostsByGallery(galleryId) {
+        return this.posts.filter(post => post.galleryId === galleryId);
     }
-    
-    const comments = getComments();
-    const commentIndex = comments.findIndex(comment => comment.id === commentId);
-    
-    if (commentIndex === -1) return;
-    
-    const comment = comments[commentIndex];
-    comment.voters = comment.voters || [];
-    
-    const existingVote = comment.voters.find(voter => voter.userId === currentUser.id);
-    
-    if (existingVote) {
-        if (existingVote.type === voteType) {
-            alert('이미 ' + (voteType === 'like' ? '추천' : '비추천') + '하셨습니다.');
-            return;
-        } else {
-            existingVote.type = voteType;
-            if (voteType === 'like') {
-                comment.likes = (comment.likes || 0) + 1;
-                comment.dislikes = Math.max(0, (comment.dislikes || 0) - 1);
-            } else {
-                comment.dislikes = (comment.dislikes || 0) + 1;
-                comment.likes = Math.max(0, (comment.likes || 0) - 1);
+
+    // 게시글 검색
+    searchPosts(galleryId, searchTerm) {
+        let posts = this.getPostsByGallery(galleryId);
+        
+        if (searchTerm) {
+            const term = searchTerm.toLowerCase();
+            posts = posts.filter(post => 
+                post.title.toLowerCase().includes(term) ||
+                post.content.toLowerCase().includes(term) ||
+                post.author.toLowerCase().includes(term)
+            );
+        }
+        
+        return posts;
+    }
+
+    // 게시글 정렬
+    sortPosts(posts, sortBy) {
+        const sortedPosts = [...posts];
+        
+        switch (sortBy) {
+            case 'latest':
+                return sortedPosts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            case 'oldest':
+                return sortedPosts.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+            case 'popular':
+                return sortedPosts.sort((a, b) => (b.views + b.likes) - (a.views + a.likes));
+            default:
+                return sortedPosts;
+        }
+    }
+
+    // 게시글 조회수 증가
+    incrementViews(postId) {
+        const post = this.getPost(postId);
+        if (post) {
+            post.views += 1;
+            this.savePosts();
+        }
+    }
+
+    // 게시글 좋아요
+    likePost(postId) {
+        const post = this.getPost(postId);
+        if (post) {
+            post.likes += 1;
+            this.savePosts();
+        }
+    }
+
+    // 댓글 생성
+    createComment(postId, author, content) {
+        if (!author || !content) {
+            throw new Error('작성자와 댓글 내용을 입력해주세요.');
+        }
+
+        const comment = {
+            id: Date.now().toString(),
+            author: author.trim(),
+            content: content.trim(),
+            createdAt: new Date().toISOString(),
+            isUserComment: this.authManager.isLoggedIn(),
+            authorId: this.authManager.isLoggedIn() ? this.authManager.getCurrentUser().id : null
+        };
+
+        if (!this.comments[postId]) {
+            this.comments[postId] = [];
+        }
+
+        this.comments[postId].push(comment);
+        this.saveComments();
+        
+        return comment;
+    }
+
+    // 댓글 삭제 (관리자 또는 본인만)
+    deleteComment(postId, commentId) {
+        const postComments = this.comments[postId];
+        if (!postComments) {
+            throw new Error('댓글을 찾을 수 없습니다.');
+        }
+
+        const commentIndex = postComments.findIndex(c => c.id === commentId);
+        if (commentIndex === -1) {
+            throw new Error('댓글을 찾을 수 없습니다.');
+        }
+
+        const comment = postComments[commentIndex];
+        const user = this.authManager.getCurrentUser();
+        
+        // 삭제 권한 확인
+        if (!this.authManager.isAdmin() && 
+            (!user || (comment.authorId !== user.id && comment.author !== user.nickname))) {
+            throw new Error('삭제 권한이 없습니다.');
+        }
+
+        postComments.splice(commentIndex, 1);
+        this.saveComments();
+    }
+
+    // 게시글의 댓글 목록
+    getComments(postId) {
+        return this.comments[postId] || [];
+    }
+
+    // 전체 게시글 목록
+    getAllPosts() {
+        return this.posts;
+    }
+
+    // 게시글 데이터 저장
+    savePosts() {
+        localStorage.setItem('gp-posts', JSON.stringify(this.posts));
+    }
+
+    // 댓글 데이터 저장
+    saveComments() {
+        localStorage.setItem('gp-comments', JSON.stringify(this.comments));
+    }
+
+    // 통계 정보
+    getStats() {
+        const totalComments = Object.values(this.comments).reduce((sum, comments) => sum + comments.length, 0);
+        const today = new Date().toDateString();
+        const todayPosts = this.posts.filter(post => 
+            new Date(post.createdAt).toDateString() === today
+        ).length;
+
+        return {
+            totalPosts: this.posts.length,
+            totalComments,
+            todayPosts,
+            mostLikedPost: this.posts.sort((a, b) => b.likes - a.likes)[0],
+            mostViewedPost: this.posts.sort((a, b) => b.views - a.views)[0]
+        };
+    }
+
+    // 샘플 게시글 생성 (간소화)
+    createSamplePosts() {
+        const samplePosts = [
+            {
+                id: '1',
+                title: 'GP-Inside에 오신 것을 환영합니다!',
+                author: '관리자',
+                content: `안녕하세요! GP-Inside 오프라인 커뮤니티에 오신 것을 환영합니다.
+
+이 사이트는 인터넷 연결 없이도 사용할 수 있는 로컬 커뮤니티입니다.
+모든 데이터는 브라우저의 로컬 스토리지에 저장되어 오프라인에서도 완벽하게 작동합니다.
+
+주요 기능:
+✅ 회원가입/로그인 시스템
+✅ 갤러리 시스템 (관리자 관리)
+✅ 다크/라이트 테마 전환
+✅ 모듈화된 구조
+
+자유롭게 글을 작성하고 소통해보세요!`,
+                galleryId: 'free',
+                createdAt: new Date(Date.now() - 86400000).toISOString(),
+                views: 42,
+                likes: 15,
+                isUserPost: false,
+                authorId: null
             }
-        }
-    } else {
-        comment.voters.push({
-            userId: currentUser.id,
-            type: voteType,
-            date: new Date().toISOString()
-        });
-        
-        if (voteType === 'like') {
-            comment.likes = (comment.likes || 0) + 1;
-        } else {
-            comment.dislikes = (comment.dislikes || 0) + 1;
-        }
-    }
-    
-    saveComments(comments);
-    loadComments();
-}
+        ];
 
-// 게시글 수정
-function editPost() {
-    window.location.href = `write.html?edit=${currentPostId}`;
-}
+        // 샘플 댓글
+        const sampleComments = {
+            '1': [
+                {
+                    id: 'c1',
+                    author: '사용자1',
+                    content: '정말 멋진 사이트네요! 오프라인에서도 완벽하게 작동하다니 감동입니다.',
+                    createdAt: new Date(Date.now() - 21600000).toISOString(),
+                    isUserComment: false,
+                    authorId: null
+                }
+            ]
+        };
 
-// 게시글 삭제
-function deletePost() {
-    // 권한 확인
-    if (!currentUser || (currentUser.id !== currentPost.authorId && !currentUser.isAdmin)) {
-        showNotification('게시글을 삭제할 권한이 없습니다.', 'error');
-        return;
-    }
-    
-    if (!confirm('게시글을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
-        return;
-    }
-    
-    // common.js의 deletePost 함수 호출 (이름 충돌 해결)
-    const posts = getPosts();
-    const filteredPosts = posts.filter(post => post.id !== currentPostId);
-    savePosts(filteredPosts);
-    
-    // 댓글도 함께 삭제
-    const comments = getComments();
-    const filteredComments = comments.filter(comment => comment.postId !== currentPostId);
-    saveComments(filteredComments);
-    
-    showNotification('게시글이 삭제되었습니다.', 'success');
-    
-    const gallery = getGalleryById(currentPost.galleryId);
-    window.location.href = `gallery.html?id=${gallery.id}`;
-}
-
-// 북마크 토글
-function togglePostBookmark() {
-    if (!currentUser) {
-        showNotification('로그인이 필요합니다.', 'warning');
-        return;
-    }
-    
-    toggleBookmark(currentPostId);
-}
-
-// 게시글 공유
-function sharePost() {
-    const url = window.location.href;
-    
-    if (navigator.share) {
-        navigator.share({
-            title: currentPost.title,
-            url: url
-        });
-    } else if (navigator.clipboard) {
-        navigator.clipboard.writeText(url).then(() => {
-            alert('링크가 클립보드에 복사되었습니다.');
-        });
-    } else {
-        prompt('링크를 복사하세요:', url);
+        this.posts = samplePosts;
+        this.comments = sampleComments;
+        this.savePosts();
+        this.saveComments();
     }
 }
-
-// 게시글 신고
-function reportPost() {
-    if (!currentUser) {
-        alert('로그인이 필요합니다.');
-        return;
-    }
-    
-    const reason = prompt('신고 사유를 입력해주세요:');
-    if (reason) {
-        // 신고 기능 구현 (향후 추가)
-        alert('신고가 접수되었습니다.');
-    }
-}
-
-// 댓글 신고
-function reportComment(commentId) {
-    if (!currentUser) {
-        alert('로그인이 필요합니다.');
-        return;
-    }
-    
-    const reason = prompt('신고 사유를 입력해주세요:');
-    if (reason) {
-        // 신고 기능 구현 (향후 추가)
-        alert('신고가 접수되었습니다.');
-    }
-}
-
-// 전역 함수 등록
-window.submitComment = submitComment;
-window.showReplyForm = showReplyForm;
-window.hideReplyForm = hideReplyForm;
-window.submitReply = submitReply;
-window.deleteComment = deleteComment;
-window.voteComment = voteComment;
-window.editPost = editPost;
-window.deletePost = deletePost;
-window.toggleBookmark = togglePostBookmark;
-window.sharePost = sharePost;
-window.reportPost = reportPost;
-window.reportComment = reportComment;
