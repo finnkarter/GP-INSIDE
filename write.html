@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>글쓰기 - GP-INSIDE</title>
+    
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/buttons.css">
+    <link rel="stylesheet" href="css/navbar.css">
+    <style>
+        .write-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: calc(100vh - 80px);
+        }
+
+        .write-header {
+            margin-bottom: 2rem;
+        }
+
+        .write-header h1 {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .write-header p {
+            color: var(--text-secondary);
+        }
+
+        .write-form {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .form-label .required {
+            color: #ef4444;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            background: var(--input-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        select.input-field {
+            cursor: pointer;
+        }
+
+        textarea.input-field {
+            min-height: 300px;
+            resize: vertical;
+            line-height: 1.6;
+        }
+
+        .input-hint {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .form-actions button {
+            padding: 0.875rem 2rem;
+            font-size: 1rem;
+            min-width: 120px;
+        }
+
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 0.75rem;
+        }
+
+        .category-option {
+            padding: 1rem;
+            background: var(--input-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .category-option:hover {
+            border-color: var(--primary-color);
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .category-option.selected {
+            border-color: var(--primary-color);
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .category-option input[type="radio"] {
+            display: none;
+        }
+
+        .category-icon {
+            font-size: 1.5rem;
+        }
+
+        .category-name {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .char-count {
+            text-align: right;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .error-message {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #ef4444;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- 네비게이션 바 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-left">
+                <a href="index.html" style="text-decoration: none;">
+                    <h1 class="logo">GP-INSIDE</h1>
+                </a>
+            </div>
+            <div class="nav-right">
+                <a href="index.html" class="btn-secondary">취소</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="write-container">
+        <div class="write-header">
+            <h1>✍️ 새 게시글 작성</h1>
+            <p>커뮤니티와 생각을 나눠보세요</p>
+        </div>
+
+        <div id="errorMessage" class="error-message"></div>
+
+        <form class="write-form" onsubmit="handleSubmit(event)">
+            <div class="form-group">
+                <label class="form-label">
+                    카테고리 <span class="required">*</span>
+                </label>
+                <div class="category-grid">
+                    <label class="category-option selected">
+                        <input type="radio" name="category" value="free" checked>
+                        <span class="category-icon">💬</span>
+                        <span class="category-name">자유게시판</span>
+                    </label>
+                    <label class="category-option">
+                        <input type="radio" name="category" value="humor">
+                        <span class="category-icon">😄</span>
+                        <span class="category-name">유머</span>
+                    </label>
+                    <label class="category-option">
+                        <input type="radio" name="category" value="tech">
+                        <span class="category-icon">💻</span>
+                        <span class="category-name">기술</span>
+                    </label>
+                    <label class="category-option">
+                        <input type="radio" name="category" value="game">
+                        <span class="category-icon">🎮</span>
+                        <span class="category-name">게임</span>
+                    </label>
+                    <label class="category-option">
+                        <input type="radio" name="category" value="news">
+                        <span class="category-icon">📰</span>
+                        <span class="category-name">뉴스</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="title">
+                    제목 <span class="required">*</span>
+                </label>
+                <input 
+                    type="text" 
+                    id="title" 
+                    class="input-field" 
+                    placeholder="제목을 입력하세요"
+                    maxlength="100"
+                    required
+                >
+                <div class="char-count"><span id="titleCount">0</span> / 100</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="content">
+                    내용 <span class="required">*</span>
+                </label>
+                <textarea 
+                    id="content" 
+                    class="input-field" 
+                    placeholder="내용을 입력하세요&#10;&#10;커뮤니티 규칙을 지켜주세요:&#10;• 상대방을 존중하는 언어를 사용해주세요&#10;• 불법적이거나 유해한 콘텐츠는 금지됩니다&#10;• 광고나 스팸은 삭제될 수 있습니다"
+                    required
+                ></textarea>
+                <div class="char-count"><span id="contentCount">0</span>자</div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="tags">
+                    태그
+                </label>
+                <input 
+                    type="text" 
+                    id="tags" 
+                    class="input-field" 
+                    placeholder="태그를 입력하세요 (쉼표로 구분)"
+                >
+                <div class="input-hint">예: 추천, 질문, 정보공유</div>
+            </div>
+
+            <div class="form-actions">
+                <a href="index.html" class="btn-secondary">취소</a>
+                <button type="submit" class="btn-primary">게시하기</button>
+            </div>
+        </form>
+    </div>
+
+    <script src="js/state.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/posts.js"></script>
+    <script>
+        // 로그인 체크
+        if (!isLoggedIn()) {
+            alert('로그인이 필요합니다.');
+            window.location.href = 'login.html';
+        }
+
+        // 카테고리 선택 UI
+        document.querySelectorAll('.category-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.category-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                this.classList.add('selected');
+                this.querySelector('input[type="radio"]').checked = true;
+            });
+        });
+
+        // 글자 수 카운터
+        const titleInput = document.getElementById('title');
+        const contentInput = document.getElementById('content');
+        const titleCount = document.getElementById('titleCount');
+        const contentCount = document.getElementById('contentCount');
+
+        titleInput.addEventListener('input', function() {
+            titleCount.textContent = this.value.length;
+        });
+
+        contentInput.addEventListener('input', function() {
+            contentCount.textContent = this.value.length;
+        });
+
+        // 폼 제출
+        function handleSubmit(event) {
+            event.preventDefault();
+            
+            const category = document.querySelector('input[name="category"]:checked').value;
+            const title = titleInput.value.trim();
+            const content = contentInput.value.trim();
+            const tags = document.getElementById('tags').value.trim();
+            
+            const errorMsg = document.getElementById('errorMessage');
+            errorMsg.style.display = 'none';
+            
+            if (!title) {
+                errorMsg.textContent = '제목을 입력해주세요.';
+                errorMsg.style.display = 'block';
+                titleInput.focus();
+                return;
+            }
+            
+            if (!content) {
+                errorMsg.textContent = '내용을 입력해주세요.';
+                errorMsg.style.display = 'block';
+                contentInput.focus();
+                return;
+            }
+            
+            if (content.length < 10) {
+                errorMsg.textContent = '내용을 10자 이상 입력해주세요.';
+                errorMsg.style.display = 'block';
+                contentInput.focus();
+                return;
+            }
+            
+            // 게시글 생성
+            createNewPost(category, title, content, tags);
+            
+            // 성공 메시지 후 메인으로 이동
+            alert('게시글이 등록되었습니다!');
+            window.location.href = 'index.html';
+        }
+
+        // 페이지 나가기 전 확인
+        let formChanged = false;
+        
+        titleInput.addEventListener('input', () => formChanged = true);
+        contentInput.addEventListener('input', () => formChanged = true);
+        
+        window.addEventListener('beforeunload', function(e) {
+            if (formChanged && titleInput.value.trim() || contentInput.value.trim()) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+    </script>
+</body>
+</html>
